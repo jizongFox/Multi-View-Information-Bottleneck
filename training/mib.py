@@ -33,6 +33,7 @@ class MIBTrainer(MVInfoMaxTrainer):
         mi_estimation = mi_estimation.mean()
 
         # Symmetrized Kullback-Leibler divergence
+        # there is no estimator for this since it is supposed to be gaussian
         kl_1_2 = p_z1_given_v1.log_prob(z1) - p_z2_given_v2.log_prob(z1)
         kl_2_1 = p_z2_given_v2.log_prob(z2) - p_z1_given_v1.log_prob(z2)
         skl = (kl_1_2 + kl_2_1).mean() / 2.
@@ -49,5 +50,3 @@ class MIBTrainer(MVInfoMaxTrainer):
         loss = - mi_gradient + beta * skl
 
         return loss
-
-

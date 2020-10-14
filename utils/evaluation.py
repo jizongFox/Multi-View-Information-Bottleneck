@@ -1,8 +1,8 @@
 import numpy as np
 import torch
-from torch.utils.data import Subset
 from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import MinMaxScaler
+from torch.utils.data import Subset
 
 
 class EmbeddedDataset:
@@ -96,7 +96,8 @@ def evaluate(encoder, train_on, test_on, device):
     return train_and_evaluate_linear_model(embedded_train, embedded_test)
 
 
-def train_and_evaluate_linear_model_from_matrices(x_train, y_train, solver='saga', multi_class='multinomial', tol=.1, C=10):
+def train_and_evaluate_linear_model_from_matrices(x_train, y_train, solver='saga', multi_class='multinomial', tol=.1,
+                                                  C=10):
     model = LogisticRegression(solver=solver, multi_class=multi_class, tol=tol, C=C)
     model.fit(x_train, y_train)
     return model

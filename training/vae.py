@@ -2,8 +2,8 @@ import torch
 import torch.nn as nn
 from torch.distributions import Normal, Independent
 
-from utils.modules import Decoder
 from training.base import RepresentationTrainer
+from utils.modules import Decoder
 from utils.schedulers import ExponentialScheduler
 
 
@@ -72,5 +72,3 @@ class VAETrainer(RepresentationTrainer):
         loss = distortion + beta * rate
 
         return loss
-
-

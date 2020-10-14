@@ -1,9 +1,10 @@
+import numpy as np
 import torch
-from torchvision import transforms, datasets
-from torch.utils.data import Dataset
 import torchvision.transforms.functional as F
 from PIL import Image
-import numpy as np
+from torch.utils.data import Dataset
+from torchvision import transforms
+
 
 # Wrapper to create Multi-View datasets starting from 1 view and augmentation
 class AugmentedDataset(Dataset):
@@ -21,7 +22,7 @@ class AugmentedDataset(Dataset):
         x, y = self.dataset[index]
 
         v_1 = self.augmentation(x)
-      
+
         if self.apply_same:
             v_2 = v_1
         else:
@@ -40,7 +41,6 @@ class AugmentedDataset(Dataset):
         return len(self.dataset)
 
 
-    
 # Transform which randomly corrupts pixels with a given probabiliy
 class PixelCorruption(object):
     MODALITIES = ['flip', 'drop']
@@ -64,8 +64,8 @@ class PixelCorruption(object):
         else:
             mask = torch.zeros(im.size(1), im.size(2)).bool()
 
-        if len(im.size())>2:
-            mask = mask.unsqueeze(0).repeat(im.size(0),1,1)
+        if len(im.size()) > 2:
+            mask = mask.unsqueeze(0).repeat(im.size(0), 1, 1)
 
         if self.mode == 'flip':
             im[mask] = self.max - im[mask]
@@ -73,4 +73,3 @@ class PixelCorruption(object):
             im[mask] = self.min
 
         return im
-

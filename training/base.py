@@ -1,12 +1,10 @@
-import os
+import numpy as np
 import torch
 import torch.nn as nn
-import numpy as np
+import torch.optim as optimizer_module
 from torch.optim import Optimizer
 
 from utils.modules import Encoder
-
-import torch.optim as optimizer_module
 
 
 # utility function to initialize an optimizer from its name
@@ -27,10 +25,10 @@ class Trainer(nn.Module):
         self.writer = writer
         self.log_loss_every = log_loss_every
 
-        self.loss_items = {}
+        self.loss_items: dict = {}
 
     def get_device(self):
-        return list(self.parameters())[0].device
+        return next(self.parameters()).device
 
     def train_step(self, data):
         # Set all the models in training mode
@@ -86,7 +84,7 @@ class Trainer(nn.Module):
                 # Move the optimizer parameters to the same correct device.
                 # see https://github.com/pytorch/pytorch/issues/2830 for further details
                 if isinstance(attribute, Optimizer):
-                    device = list(value['state'].values())[0]['exp_avg'].device # Hack to identify the device
+                    device = list(value['state'].values())[0]['exp_avg'].device  # Hack to identify the device
                     for state in attribute.state.values():
                         for k, v in state.items():
                             if isinstance(v, torch.Tensor):

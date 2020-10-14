@@ -1,15 +1,16 @@
-import os
-import yaml
 import argparse
-from tqdm import tqdm
+import os
+
+import yaml
+from torch.utils.data import DataLoader
 from torchvision.datasets import MNIST
 from torchvision.transforms import Compose, RandomAffine, ToTensor
-from torch.utils.data import DataLoader
+from tqdm import tqdm
 
+import training as training_module
 from utils.data import PixelCorruption, AugmentedDataset
 from utils.evaluation import evaluate, split
-import training as training_module
-
+from pprint import pprint
 
 parser = argparse.ArgumentParser()
 parser.add_argument("experiment_dir", type=str,
@@ -35,6 +36,9 @@ parser.add_argument("--epochs", type=int, default=1000, help="Total number of tr
 
 args = parser.parse_args()
 
+pprint(vars(args))
+
+
 logging = not args.no_logging
 experiment_dir = args.experiment_dir
 data_dir = args.data_dir
@@ -53,7 +57,6 @@ epochs = args.epochs
 pretrained = os.path.isfile(os.path.join(experiment_dir, 'model.pt')) \
              and os.path.isfile(os.path.join(experiment_dir, 'config.yml'))
 
-
 if pretrained and not (config_file is None) and not overwrite:
     raise Exception("The experiment directory %s already contains a trained model, please specify a different "
                     "experiment directory or remove the --config-file option to resume training or use the --overwrite"
@@ -61,13 +64,13 @@ if pretrained and not (config_file is None) and not overwrite:
 
 resume_training = pretrained and not overwrite
 
-
 if resume_training:
     load_model_file = os.path.join(experiment_dir, 'model.pt')
     config_file = os.path.join(experiment_dir, 'config.yml')
 
 if logging:
     from torch.utils.tensorboard import SummaryWriter
+
     writer = SummaryWriter(log_dir=experiment_dir)
 else:
     os.makedirs(experiment_dir, exist_ok=True)
@@ -106,8 +109,8 @@ t = Compose([
                  translate=[0.1, 0.1],
                  scale=[0.9, 1.1],
                  shear=15),  # Small affine transformations
-    ToTensor(),              # Conversion to torch tensor
-    PixelCorruption(0.8)     # PixelCorruption with keep probability 80%
+    ToTensor(),  # Conversion to torch tensor
+    PixelCorruption(0.8)  # PixelCorruption with keep probability 80%
 ])
 
 # Creating the multi-view dataset using the augmentation class defined by t
@@ -123,7 +126,7 @@ train_subset = split(train_set, 100, 'Balanced')
 
 checkpoint_count = 1
 
-for epoch in tqdm(range(epochs)):
+for epoch in range(epochs):
     for data in tqdm(train_loader):
         trainer.train_step(data)
 
@@ -132,8 +135,10 @@ for epoch in tqdm(range(epochs)):
         train_accuracy, test_accuracy = evaluate(encoder=trainer.encoder, train_on=train_subset, test_on=test_set,
                                                  device=device)
         if not (writer is None):
-            writer.add_scalar(tag='evaluation/train_accuracy', scalar_value=train_accuracy, global_step=trainer.iterations)
-            writer.add_scalar(tag='evaluation/test_accuracy', scalar_value=test_accuracy, global_step=trainer.iterations)
+            writer.add_scalar(tag='evaluation/train_accuracy', scalar_value=train_accuracy,
+                              global_step=trainer.iterations)
+            writer.add_scalar(tag='evaluation/test_accuracy', scalar_value=test_accuracy,
+                              global_step=trainer.iterations)
 
         tqdm.write('Train Accuracy: %f' % train_accuracy)
         tqdm.write('Test Accuracy: %f' % test_accuracy)

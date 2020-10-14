@@ -1,5 +1,5 @@
-from utils.modules import MIEstimator
 from training.base import RepresentationTrainer
+from utils.modules import MIEstimator
 
 
 ######################
@@ -10,7 +10,7 @@ class InfoMaxTrainer(RepresentationTrainer):
         super(InfoMaxTrainer, self).__init__(**params)
 
         # Initialization of the mutual information estimation network
-        self.mi_estimator = MIEstimator(self.z_dim, 28*28)
+        self.mi_estimator = MIEstimator(self.z_dim, 28 * 28)
 
         # Adding the parameters of the estimator to the optimizer
         self.opt.add_param_group(
