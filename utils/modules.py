@@ -1,3 +1,5 @@
+from typing import Union, List, Optional, OrderedDict, Dict
+
 import torch
 import torch.nn as nn
 from torch.distributions import Normal, Independent
@@ -93,8 +95,8 @@ class IICEstimator(nn.Module):
 
     def forward(self, z1, z2):
         p1, p2 = torch.chunk(self._projector(torch.cat([z1, z2], dim=0)), 2)
-        iic_loss = self._iic_mi(p1, p2)
-        return iic_loss
+        iic_loss, p_i_j = self._iic_mi(p1, p2)
+        return iic_loss, (p1, p2), p_i_j
 
     def _iic_mi(self, p1, p2):
         _, k = p1.size()
@@ -105,16 +107,12 @@ class IICEstimator(nn.Module):
         )  # p_i should be the mean of the x_out
         p_j = p_i_j.sum(dim=0).view(1, k).expand(k, k)  # but should be same, symmetric
 
-        # p_i = x_out.mean(0).view(k, 1).expand(k, k)
-        # p_j = x_tf_out.mean(0).view(1, k).expand(k, k)
-        #
-
         loss = -p_i_j * (
             torch.log(p_i_j + 1e-10) - self.lamb * torch.log(p_j + 1e-10) - self.lamb * torch.log(p_i + 1e-10)
         )
         loss = loss.sum()
 
-        return loss
+        return loss, p_i_j
 
     def _joint(self, p1, p2):
 
@@ -136,3 +134,65 @@ class IICEstimator(nn.Module):
     def simplex(probs, dim=1) -> bool:
         sum = probs.sum(dim)
         return torch.allclose(sum, torch.ones_like(sum))
+
+
+class KL_div(nn.Module):
+    r"""
+    KL(p,q)= -\sum p(x) * log(q(x)/p(x))
+    where p, q are distributions
+    p is usually the fixed one like one hot coding
+    p is the target and q is the distribution to get approached.
+
+    reduction (string, optional): Specifies the reduction to apply to the output:
+    ``'none'`` | ``'mean'`` | ``'sum'``. ``'none'``: no reduction will be applied,
+    ``'mean'``: the sum of the output will be divided by the number of
+    elements in the output, ``'sum'``: the output will be summed.
+    """
+
+    def __init__(self, reduction="mean", eps=1e-16, weight: Union[List[float], torch.Tensor] = None, verbose=True):
+        super().__init__()
+        self._eps = eps
+        self._reduction = reduction
+        self._weight: Optional[torch.Tensor] = weight
+        if weight is not None:
+            assert isinstance(weight, (list, torch.Tensor)), type(weight)
+            if isinstance(weight, list):
+                self._weight = torch.Tensor(weight).float()
+            else:
+                self._weight = weight.float()
+            # normalize weight:
+            self._weight = self._weight / self._weight.sum() * len(self._weight)
+        if verbose:
+            print(
+                f"Initialized {self.__class__.__name__} \nwith weight={self._weight} and reduction={self._reduction}.")
+
+    def forward(self, prob: torch.Tensor, target: torch.Tensor, **kwargs) -> torch.Tensor:
+        if not kwargs.get("disable_assert"):
+            assert prob.shape == target.shape
+        b, c, *hwd = target.shape
+        kl = (-target * torch.log((prob + self._eps) / (target + self._eps)))
+        if self._weight is not None:
+            assert len(self._weight) == c
+            weight = self._weight.expand(b, *hwd, -1).transpose(-1, 1).detach()
+            kl *= weight.to(kl.device)
+        kl = kl.sum(1)
+        if self._reduction == "mean":
+            return kl.mean()
+        elif self._reduction == "sum":
+            return kl.sum()
+        else:
+            return kl
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}\n, weight={self._weight}"
+
+    def state_dict(self, *args, **kwargs):
+        save_dict = super().state_dict(*args, **kwargs)
+        save_dict["weight"] = self._weight
+        save_dict["reduction"] = self._reduction
+        return save_dict
+
+    def load_state_dict(self, state_dict: Union[Dict[str, torch.Tensor], OrderedDict[str, torch.Tensor]], *args,
+                        **kwargs):
+        self._reduction = state_dict["reduction"]
+        self._weight = state_dict["weight"]

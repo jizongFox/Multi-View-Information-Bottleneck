@@ -58,7 +58,7 @@ pretrained = os.path.isfile(os.path.join(experiment_dir, 'model.pt')) \
              and os.path.isfile(os.path.join(experiment_dir, 'config.yml'))
 
 if pretrained and not (config_file is None) and not overwrite:
-    raise Exception("The experiment directory %s already contains a trained model, please specify a different "
+    raise FileExistsError("The experiment directory %s already contains a trained model, please specify a different "
                     "experiment directory or remove the --config-file option to resume training or use the --overwrite"
                     "flag to force overwriting")
 
