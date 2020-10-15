@@ -88,3 +88,12 @@ The `results.ipynb` notebook provides some simple code to visualize and evaluate
 Examples of encoders trained using the VAE, InfoMax, MV-InfoMax and MIB objective can be found and loaded form the `trained_models` folder.
 
 ![Accuracy of a linear classifier trained on top on the representations obtained with different learning objectives for different percentage of given labels](images/accuracy.png)
+
+## What's more on this fork?
+
+I have tested `iic` method in this framework aganist the `mid` method, trying to enhance `iic` method. 
+
+It is belived that `iic` outperformances most baseline methods.
+
+![visualization of testing results](images/evaluation_test_accuracy.svg)
+![label](images/label.png)
