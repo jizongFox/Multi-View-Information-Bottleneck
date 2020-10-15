@@ -1,3 +1,5 @@
+import torch
+
 from training.multiview_infomax import MVInfoMaxTrainer
 from utils.modules import IICEstimator, KL_div
 from utils.schedulers import ExponentialScheduler
@@ -28,15 +30,16 @@ class IICTrainer(MVInfoMaxTrainer):
         v1, v2, _ = data
 
         # Encode a batch of data
-        z1 = self.encoder_v1(v1).mean
-        z2 = self.encoder_v2(v2).mean
+        z1_mean = self.encoder_v1(v1).mean
+        z2_mean = self.encoder_v2(v2).mean
 
-        if self.resample:
-            z1 = self.encoder_v1(v1).rsample()
-            z2 = self.encoder_v2(v2).rsample()
+        z1 = self.encoder_v1(v1).rsample()
+        z2 = self.encoder_v2(v2).rsample()
 
         # Mutual information estimation
-        mi_gradient, (p1, p2), _ = self.mi_estimator(z1, z2)
+        mi_gradient, (p1, p2), _ = self.mi_estimator(
+            torch.cat([z1_mean, z1], dim=0),
+            torch.cat([z2_mean, z2], dim=0))
         mi_gradient = mi_gradient.mean()
 
         # Symmetrized Kullback-Leibler divergence
