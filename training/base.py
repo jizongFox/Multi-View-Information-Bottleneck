@@ -113,7 +113,7 @@ class RepresentationTrainer(Trainer):
 
         self.z_dim = z_dim
 
-        # Intialization of the encoder
+        # Initialization of the encoder
         self.encoder = Encoder(z_dim)
 
         self.opt = init_optimizer(optimizer_name, [

@@ -1,5 +1,6 @@
 import argparse
 import os
+from pprint import pprint
 
 import yaml
 from torch.utils.data import DataLoader
@@ -10,9 +11,8 @@ from tqdm import tqdm
 import training as training_module
 from utils.data import PixelCorruption, AugmentedDataset
 from utils.evaluation import evaluate, split
-from pprint import pprint
 
-parser = argparse.ArgumentParser()
+parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument("experiment_dir", type=str,
                     help="Full path to the experiment directory. Logs and checkpoints will be stored in this location")
 parser.add_argument("--config-file", type=str, default=None, help="Path to the .yaml training configuration file.")
@@ -38,7 +38,6 @@ args = parser.parse_args()
 
 pprint(vars(args))
 
-
 logging = not args.no_logging
 experiment_dir = args.experiment_dir
 data_dir = args.data_dir
@@ -59,8 +58,8 @@ pretrained = os.path.isfile(os.path.join(experiment_dir, 'model.pt')) \
 
 if pretrained and not (config_file is None) and not overwrite:
     raise FileExistsError("The experiment directory %s already contains a trained model, please specify a different "
-                    "experiment directory or remove the --config-file option to resume training or use the --overwrite"
-                    "flag to force overwriting")
+                          "experiment directory or remove the --config-file option to resume training or use the --overwrite"
+                          "flag to force overwriting")
 
 resume_training = pretrained and not overwrite
 
