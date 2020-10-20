@@ -34,7 +34,7 @@ class InfoNCETrainer(RepresentationTrainer):
 
     def _compute_loss(self, data):
         # Read the two views v1 and v2 and ignore the label y
-        v1, v2, _ = data
+        v1, v2, target = data
 
         # Encode a batch of data
         p_z1_given_v1 = self.encoder_v1(v1)
@@ -51,7 +51,7 @@ class InfoNCETrainer(RepresentationTrainer):
         norm_z1, norm_z2 = torch.chunk(F.normalize(self._projector(torch.cat([z1, z2], dim=0)), dim=1), 2)
 
         # Mutual information estimation
-        mi_estimation = self.mi_estimator(F.normalize(torch.stack([norm_z1, norm_z2], dim=1), dim=1))
+        mi_estimation = self.mi_estimator(torch.stack([norm_z1, norm_z2], dim=1), )
 
         # Logging Mutual Information Estimation
         self._add_loss_item('loss/infonce', mi_estimation.item())

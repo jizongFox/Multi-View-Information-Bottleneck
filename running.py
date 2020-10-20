@@ -13,7 +13,8 @@ job_array = [
     "python -O train_representation.py runs/IIC_resample --config-file=configs/IIC_resample.yml --data-dir=./data/",
 
     "python -O train_representation.py runs/InfoNCE --config-file=configs/InfoNCE.yml --data-dir=./data/",
-    "python -O train_representation.py runs/InfoNCE_resample --config-file=configs/InfoNCE_resample.yml --data-dir=./data/"
+    "python -O train_representation.py runs/InfoNCE_resample --config-file=configs/InfoNCE_resample.yml "
+    "--data-dir=./data/"
 ]
 
 accounts = cycle(["def-chdesa", "def-mpederso", "rrg-mpederso"])
