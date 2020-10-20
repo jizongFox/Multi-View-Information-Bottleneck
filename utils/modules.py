@@ -227,6 +227,22 @@ class InfoNCEEstimator(nn.Module):
         return loss
 
 
+# InfoNCE projector
+class NCEProjector(nn.Module):
+
+    def __init__(self, z_dim):
+        super().__init__()
+        self._z_dim = z_dim
+        self._projector = nn.Sequential(
+            nn.Linear(z_dim, z_dim),
+            nn.ReLU(inplace=True),
+            nn.Linear(z_dim, z_dim)
+        )
+
+    def forward(self, z):
+        return self._projector(z)
+
+
 class KL_div(nn.Module):
     r"""
     KL(p,q)= -\sum p(x) * log(q(x)/p(x))

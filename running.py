@@ -7,6 +7,11 @@ job_array = [
     "python -O train_representation.py runs/InfoMax --config-file=configs/InfoMax.yml --data-dir=./data/",
     "python -O train_representation.py runs/MV_InfoMax --config-file=configs/MV_InfoMax.yml --data-dir=./data/",
     "python -O train_representation.py runs/VAE --config-file=configs/VAE.yml --data-dir=./data/",
+
+    "python -O train_representation.py runs/IIC --config-file=configs/IIC.yml --data-dir=./data/",
+    "python -O train_representation.py runs/IIC_mib --config-file=configs/IIC_mib.yml --data-dir=./data/",
+    "python -O train_representation.py runs/IIC_resample --config-file=configs/IIC_resample.yml --data-dir=./data/",
+
     "python -O train_representation.py runs/InfoNCE --config-file=configs/InfoNCE.yml --data-dir=./data/",
     "python -O train_representation.py runs/InfoNCE_resample --config-file=configs/InfoNCE_resample.yml --data-dir=./data/"
 ]

@@ -1,7 +1,8 @@
 import torch
+from torch.nn import functional as F
 
 from training.base import RepresentationTrainer
-from utils.modules import InfoNCEEstimator
+from utils.modules import InfoNCEEstimator, NCEProjector
 
 
 ######################
@@ -13,13 +14,15 @@ class InfoNCETrainer(RepresentationTrainer):
 
         # Initialization of the mutual information estimation network
         self.mi_estimator = InfoNCEEstimator(temperature=0.07, base_temperature=0.07)
+        self._projector = NCEProjector(params["z_dim"])
         self.encoder_v1 = self.encoder
         self.encoder_v2 = self.encoder_v1
 
         # Adding the parameters of the estimator to the optimizer
         self.opt.add_param_group(
-            {'params': self.mi_estimator.parameters(), 'lr': miest_lr}
+            {'params': self._projector.parameters(), 'lr': miest_lr}
         )
+
         self._resample = resample
 
     def _get_items_to_store(self):
@@ -45,8 +48,10 @@ class InfoNCETrainer(RepresentationTrainer):
             z1 = p_z1_given_v1.rsample()
             z2 = p_z2_given_v2.rsample()
 
+        norm_z1, norm_z2 = torch.chunk(F.normalize(self._projector(torch.cat([z1, z2], dim=0)), dim=1), 2)
+
         # Mutual information estimation
-        mi_estimation = self.mi_estimator(torch.stack([z1, z2], dim=1))
+        mi_estimation = self.mi_estimator(F.normalize(torch.stack([norm_z1, norm_z2], dim=1), dim=1))
 
         # Logging Mutual Information Estimation
         self._add_loss_item('loss/infonce', mi_estimation.item())
